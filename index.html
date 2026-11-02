@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FFD23F">
+  <meta name="description" content="XOXO - comic tic-tac-toe with Moku the mole. Play the computer, a daily puzzle, or a friend online.">
+  <title>XOXO - Comic Tic-Tac-Toe</title>
+  <link rel="icon" type="image/png" href="TemplateData/moku.png">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #1B1B1F; touch-action: none; }
+    body { display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    /* Portrait game: full screen on phones, a phone-shaped frame on wide screens. */
+    #frame { position: relative; width: 100vw; height: 100vh; height: 100dvh; background: #FFD23F; overflow: hidden; }
+    @media (min-aspect-ratio: 3/4) {
+      #frame { height: 100vh; height: 100dvh; width: calc(100dvh * 9 / 19.5); max-width: 100vw; border-left: 4px solid #000; border-right: 4px solid #000; }
+    }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #FFD23F; outline: none; }
+    #loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+               background: #FFD23F radial-gradient(circle, rgba(255,140,66,.35) 2px, transparent 3px) 0 0 / 18px 18px; }
+    #loading img { width: 46%; max-width: 260px; animation: bob 1.2s ease-in-out infinite alternate; }
+    #loading h1 { margin: 0; font-size: 64px; font-style: italic; font-weight: 900; color: #EF3E36; -webkit-text-stroke: 3px #1B1B1F;
+                  text-shadow: 5px 5px 0 #1B1B1F; transform: rotate(-6deg); letter-spacing: 2px; }
+    #loading p { margin: 0; font-weight: 800; color: #1B1B1F; letter-spacing: 1px; }
+    #bar { width: 70%; max-width: 320px; height: 22px; border: 4px solid #1B1B1F; border-radius: 14px; background: #FFF4DC; overflow: hidden; }
+    #bar-fill { width: 0%; height: 100%; background: #3BB273; transition: width .2s; }
+    #error { display: none; position: absolute; left: 12px; right: 12px; bottom: 16px; padding: 12px; border: 3px solid #1B1B1F;
+             border-radius: 12px; background: #fff; color: #1B1B1F; font-weight: 700; text-align: center; }
+    @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+  </style>
+</head>
+<body>
+  <div id="frame">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="loading">
+      <img src="TemplateData/moku.png" alt="Moku the mole">
+      <h1>XOXO!</h1>
+      <div id="bar"><div id="bar-fill"></div></div>
+      <p id="status">MOKU IS WARMING UP...</p>
+    </div>
+    <div id="error"></div>
+  </div>
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var loading = document.querySelector("#loading");
+    var fill = document.querySelector("#bar-fill");
+    var errorBox = document.querySelector("#error");
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.style.display = "block";
+    }
+
+    var config = {
+      dataUrl: "Build/xoxo-web.data.unityweb",
+      frameworkUrl: "Build/xoxo-web.framework.js.unityweb",
+      codeUrl: "Build/xoxo-web.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "IICT",
+      productName: "XOXO",
+      productVersion: "1.7.0",
+      // Sharp on phones without rendering at 3x: cap the resolution multiplier at 2.
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      showBanner: function (message, type) {
+        if (type === "error") showError(message);
+        else console.warn(message);
+      },
+    };
+
+    var script = document.createElement("script");
+    script.src = "Build/xoxo-web.loader.js";
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        fill.style.width = Math.round(progress * 100) + "%";
+      }).then(function () {
+        loading.style.display = "none";
+        canvas.focus();
+      }).catch(function (message) {
+        showError("Sorry, XOXO could not start in this browser. " + message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
